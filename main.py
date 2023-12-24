@@ -1,5 +1,9 @@
-import telebot
+import telebot , json, random 
 from telebot import types
+
+with open("dataset.json", encoding="UTF-8") as file_in:
+    records = json.load(file_in)
+print(records)
 
 bot = telebot.TeleBot('')
 
@@ -8,30 +12,20 @@ secret_santa = {}
 @bot.message_handler(commands=['start'])
 def start(message):
     bot.send_message(message.chat.id, "Привет! Добро пожаловать в бота Тайного Санты!")
-    bot.send_message(message.chat.id, "Пожалуйста, введите свое имя.")
-    bot.register_next_step_handler(message, ask_name)
 
-def ask_name(message):
-    chat_id = message.chat.id
-    name = message.text
-    secret_santa[chat_id] = {'name': name}
-    bot.send_message(chat_id, "Отлично, {}, введите имя получателя подарка:".format(name))
-    bot.register_next_step_handler(message, ask_recipient)
 
-def ask_recipient(message):
-    chat_id = message.chat.id
-    recipient = message.text
-    secret_santa[chat_id]['recipient'] = recipient
-    bot.send_message(chat_id, "Спасибо! Теперь вы участвуете в игре Тайный Санта.")
-    bot.send_message(chat_id, "Вы были выбраны для дарения подарка пользователю {}.".format(recipient))
-
-@bot.message_handler(commands=['reveal'])
-def reveal(message):
-    chat_id = message.chat.id
-    if chat_id in secret_santa:
-        recipient = secret_santa[chat_id]['recipient']
-        bot.send_message(chat_id, "Ваш получатель подарка - {}.".format(recipient))
-    else:
-        bot.send_message(chat_id, "Вы еще не участвуете в игре Тайный Санта.")
+@bot.message_handler(content_types='text')
+def message_reply(message):
+    markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
+    btn1 = types.KeyboardButton("Выбрать рандомного получателя подарка!")
+    btn2 = types.KeyboardButton("Выход")
+    markup.add(btn1, btn2)
+    if message.text=="Выбрать рандомного получателя подарка!":
+        random.randint(0,23)
+        result = random.randint(0,23)
+        records[result]
+        bot.send_message(message.chat.id, f'Ваш рандомный получатель: {records[result]["first_name"]} {records[result]["last_name"]}, его желаемый подарок: {records[result]["gift"]}')
+    elif message.text=="Выход":
+        start(message)
 
 bot.polling()
